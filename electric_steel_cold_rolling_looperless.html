@@ -1,0 +1,2978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electrical Steel Cold Rolling - Looperless Tandem Mill Schedule Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #111827;
+            --gray: #6b7280;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+            --tension: #f97316;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--dark) 0%, #1f2937 100%);
+            color: white;
+            padding: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: var(--success);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+
+        .looperless-badge {
+            display: inline-block;
+            background: var(--warning);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            min-height: 600px;
+        }
+        
+        .sidebar {
+            background: var(--light);
+            padding: 25px;
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+        
+        .content {
+            padding: 25px;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-control.error {
+            border-color: var(--danger);
+            background: #fef2f2;
+        }
+
+        .form-control.warning {
+            border-color: var(--warning);
+            background: #fffbeb;
+        }
+
+        .input-hint {
+            font-size: 0.75rem;
+            color: var(--gray);
+            margin-top: 4px;
+            display: block;
+        }
+
+        .input-error {
+            font-size: 0.75rem;
+            color: var(--danger);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .input-error.show {
+            display: block;
+        }
+
+        .looperless-warning {
+            background: #fffbeb;
+            border-left: 4px solid var(--warning);
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #92400e;
+        }
+
+        .looperless-warning strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #78350f;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--gray);
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 15px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-weight: 500;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab:hover {
+            color: var(--primary);
+            background: var(--light);
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, var(--light) 0%, white 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .result-card.success {
+            border-color: var(--success);
+            background: linear-gradient(135deg, #d1fae5 0%, white 100%);
+        }
+        
+        .result-card.warning {
+            border-color: var(--warning);
+            background: linear-gradient(135deg, #fef3c7 0%, white 100%);
+        }
+        
+        .result-card.tension {
+            border-color: var(--tension);
+            background: linear-gradient(135deg, #fed7aa 0%, white 100%);
+        }
+        
+        .result-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .result-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1;
+        }
+        
+        .result-unit {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-left: 5px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .data-table thead {
+            background: var(--dark);
+            color: white;
+        }
+        
+        .data-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .data-table tbody tr:hover {
+            background: var(--light);
+        }
+        
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .status-message.show {
+            display: block;
+        }
+        
+        .status-message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid var(--success);
+        }
+        
+        .status-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--danger);
+        }
+        
+        .status-message.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid var(--warning);
+        }
+
+        .validation-summary {
+            background: #fee2e2;
+            border: 2px solid var(--danger);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .validation-summary.show {
+            display: block;
+        }
+
+        .validation-summary h4 {
+            color: var(--danger);
+            margin-bottom: 10px;
+        }
+
+        .validation-summary ul {
+            margin-left: 20px;
+            color: #991b1b;
+        }
+
+        .validation-summary li {
+            margin: 5px 0;
+        }
+
+        .constraint-status {
+            margin-top: 15px;
+        }
+
+        .constraint-item {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border-left: 4px solid;
+            font-size: 0.9rem;
+        }
+
+        .constraint-item.pass {
+            background: #d1fae5;
+            border-color: var(--success);
+            color: #065f46;
+        }
+
+        .constraint-item.warning {
+            background: #fef3c7;
+            border-color: var(--warning);
+            color: #92400e;
+        }
+
+        .constraint-item.error {
+            background: #fee2e2;
+            border-color: var(--danger);
+            color: #991b1b;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .comparison-card h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .comparison-metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .comparison-metric .label {
+            color: var(--gray);
+        }
+
+        .comparison-metric .value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            margin: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .modal-header h2 {
+            color: var(--dark);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--gray);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: var(--dark);
+        }
+
+        .docs-section {
+            margin: 20px 0;
+        }
+
+        .docs-section h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .docs-section p {
+            line-height: 1.6;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .docs-section ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .comparison-mode {
+            background: linear-gradient(135deg, #ede9fe 0%, white 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .comparison-mode h4 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <div class="header-icon">⚙️</div>
+                Electrical Steel Cold Rolling - Looperless Tandem Mill
+                <span class="version-badge">v2.0</span>
+                <span class="looperless-badge">NO LOOPER</span>
+            </h1>
+            <p>Advanced Schedule Optimization for 6-Stand 6-High Tandem Mill</p>
+        </div>
+        
+        <div class="main-content">
+            <!-- SIDEBAR: INPUT CONTROLS -->
+            <div class="sidebar">
+                <div class="section">
+                    <div class="section-title">Mill Configuration</div>
+                    
+                    <div class="looperless-warning">
+                        <strong>⚠️ Looperless Mill Configuration</strong>
+                        This calculator is specifically designed for tandem mills without loopers. Tension limits are automatically constrained to safe values (max 60 MPa, 10-15% of yield strength) to prevent strip breakage.
+                    </div>
+
+                    <div class="form-group">
+                        <label>Number of Stands</label>
+                        <input type="number" id="numStands" class="form-control" value="6" min="2" max="7">
+                        <span class="input-hint">Typical: 4-6 stands</span>
+                        <span class="input-error" id="numStands-error"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Entry Thickness (mm)</label>
+                        <input type="number" id="entryThickness" class="form-control" value="2.0" step="0.1" min="0.5" max="5.0">
+                        <span class="input-hint">Hot band thickness: 0.5-5.0 mm</span>
+                        <span class="input-error" id="entryThickness-error"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Exit Thickness (mm)</label>
+                        <input type="number" id="exitThickness" class="form-control" value="0.35" step="0.01" min="0.15" max="1.5">
+                        <span class="input-hint">Final gauge: 0.15-1.5 mm</span>
+                        <span class="input-error" id="exitThickness-error"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Entry Speed (m/min)</label>
+                        <input type="number" id="entrySpeed" class="form-control" value="180" min="50" max="500">
+                        <span class="input-hint">Mill entry speed: 50-500 m/min</span>
+                        <span class="input-error" id="entrySpeed-error"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Strip Width (mm)</label>
+                        <input type="number" id="stripWidth" class="form-control" value="1200" min="800" max="1500">
+                        <span class="input-hint">Typical: 800-1500 mm</span>
+                        <span class="input-error" id="stripWidth-error"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Work Roll Radius (mm)</label>
+                        <input type="number" id="rollRadius" class="form-control" value="300" min="200" max="500">
+                        <span class="input-hint">6-high mill: 200-500 mm</span>
+                        <span class="input-error" id="rollRadius-error"></span>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-title">Schedule Strategy</div>
+                    
+                    <div class="form-group">
+                        <label>Reduction Pattern</label>
+                        <select id="patternType" class="form-control">
+                            <option value="linear">Linear (Equal %)</option>
+                            <option value="progressive">Progressive (Increasing)</option>
+                            <option value="regressive">Regressive (Decreasing)</option>
+                        </select>
+                        <span class="input-hint">Distribution of reduction across stands</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Steel Grade</label>
+                        <select id="steelGrade" class="form-control">
+                            <optgroup label="NGO - 0.35mm">
+                                <option value="ngo_035_230">35W230 (Ultra Low Loss)</option>
+                                <option value="ngo_035_270">35W270 (Very Low Loss)</option>
+                                <option value="ngo_035_300" selected>35W300 (Low Loss)</option>
+                                <option value="ngo_035_360">35W360 (Medium Loss)</option>
+                                <option value="ngo_035_400">35W400 (Standard)</option>
+                            </optgroup>
+                            <optgroup label="NGO - 0.50mm">
+                                <option value="ngo_050_290">50W290 (Very Low Loss)</option>
+                                <option value="ngo_050_350">50W350 (Low Loss)</option>
+                                <option value="ngo_050_400">50W400 (Medium Loss)</option>
+                                <option value="ngo_050_470">50W470 (Standard)</option>
+                            </optgroup>
+                            <optgroup label="NGO - 0.65mm">
+                                <option value="ngo_065_310">65W310 (Very Low Loss)</option>
+                                <option value="ngo_065_400">65W400 (Low Loss)</option>
+                                <option value="ngo_065_470">65W470 (Medium Loss)</option>
+                                <option value="ngo_065_530">65W530 (Standard)</option>
+                            </optgroup>
+                            <optgroup label="GO - Conventional">
+                                <option value="go_027_120">27Q120 (High Perm)</option>
+                                <option value="go_027_125">27Q125 (High Perm)</option>
+                                <option value="go_027_130">27Q130 (Med-High Perm)</option>
+                                <option value="go_027_140">27Q140 (Medium Perm)</option>
+                            </optgroup>
+                            <optgroup label="GO - Hi-B">
+                                <option value="go_023_090">23Q090 (Ultra High Perm)</option>
+                                <option value="go_023_110">23Q110 (Very High Perm)</option>
+                                <option value="go_023_120">23Q120 (High Perm)</option>
+                            </optgroup>
+                            <optgroup label="GO - Domain Refined">
+                                <option value="go_030_125">30Q125 (High Perm)</option>
+                                <option value="go_030_130">30Q130 (Medium Perm)</option>
+                            </optgroup>
+                        </select>
+                        <span class="input-hint">Select electrical steel grade</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Tension Strategy (Looperless)</label>
+                        <select id="tensionStrategy" class="form-control">
+                            <option value="uniform">Uniform Light Tension</option>
+                            <option value="regressive" selected>Regressive (Recommended)</option>
+                            <option value="optimized">Thickness-Optimized</option>
+                        </select>
+                        <span class="input-hint">Regressive recommended for looperless mills</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Max Tension (% of Yield) - Looperless Limited</label>
+                        <input type="number" id="maxTensionPct" class="form-control" value="12" min="8" max="15" step="1">
+                        <span class="input-hint">Looperless limit: 8-15% (auto-capped at 15%)</span>
+                        <span class="input-error" id="maxTensionPct-error"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Temperature (°C)</label>
+                        <input type="number" id="temperature" class="form-control" value="20" min="15" max="60">
+                        <span class="input-hint">Rolling temperature: 15-60°C</span>
+                        <span class="input-error" id="temperature-error"></span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Equipment Limits (Looperless)</div>
+                    
+                    <div class="form-group">
+                        <label>Max Roll Force (MN)</label>
+                        <input type="number" id="maxRollForce" class="form-control" value="25.0" step="0.5" min="10" max="50">
+                        <span class="input-hint">Mill capacity: 10-50 MN</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Max Motor Power (MW)</label>
+                        <input type="number" id="maxMotorPower" class="form-control" value="4.0" step="0.5" min="1" max="10">
+                        <span class="input-hint">Per stand: 1-10 MW</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Max Roll Speed (rpm)</label>
+                        <input type="number" id="maxRollSpeed" class="form-control" value="500" min="200" max="1000">
+                        <span class="input-hint">Maximum: 200-1000 rpm</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Max Strip Speed (m/min)</label>
+                        <input type="number" id="maxStripSpeed" class="form-control" value="800" min="300" max="1500">
+                        <span class="input-hint">Exit speed limit: 300-1500 m/min</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Max Tension (MPa) - Looperless</label>
+                        <input type="number" id="maxTension" class="form-control" value="60" min="40" max="80">
+                        <span class="input-hint">Looperless absolute limit: 40-80 MPa</span>
+                    </div>
+                </div>
+
+                <div class="validation-summary" id="validationSummary">
+                    <h4>⚠️ Input Validation Errors</h4>
+                    <ul id="validationList"></ul>
+                </div>
+                
+                <div class="btn-group">
+                    <button id="calculateBtn" class="btn btn-primary">Calculate Schedule</button>
+                    <button id="resetBtn" class="btn btn-secondary">Reset</button>
+                </div>
+
+                <div class="btn-group">
+                    <button id="exportBtn" class="btn btn-success">Export CSV</button>
+                    <button id="compareBtn" class="btn btn-warning">Compare</button>
+                    <button id="docsBtn" class="btn btn-secondary">📖 Docs</button>
+                </div>
+
+                <div class="btn-group">
+                    <button id="saveConfigBtn" class="btn btn-secondary">💾 Save Config</button>
+                    <button id="loadConfigBtn" class="btn btn-secondary">📂 Load Config</button>
+                </div>
+                
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+            
+            <!-- CONTENT: RESULTS AND VISUALIZATION -->
+            <div class="content">
+                <div class="tabs">
+                    <button class="tab active" data-tab="overview">Overview</button>
+                    <button class="tab" data-tab="speed">Speed Analysis</button>
+                    <button class="tab" data-tab="tension">Tension Analysis</button>
+                    <button class="tab" data-tab="schedule">Full Schedule</button>
+                    <button class="tab" data-tab="compare">Comparison</button>
+                </div>
+                
+                <!-- Overview Tab -->
+                <div id="overviewTab" class="tab-content active">
+                    <div class="section">
+                        <div class="section-title">Rolling Schedule Summary</div>
+                        <div class="results-grid">
+                            <div class="result-card">
+                                <div class="result-label">Entry Thickness</div>
+                                <div class="result-value" id="entryThickValue">-</div>
+                                <span class="result-unit">mm</span>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Target Thickness</div>
+                                <div class="result-value" id="targetThickValue">-</div>
+                                <span class="result-unit">mm</span>
+                            </div>
+                            <div class="result-card success">
+                                <div class="result-label">Achieved Thickness</div>
+                                <div class="result-value" id="achievedThickValue">-</div>
+                                <span class="result-unit">mm</span>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Total Reduction</div>
+                                <div class="result-value" id="totalReductionValue">-</div>
+                                <span class="result-unit">%</span>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Final Speed</div>
+                                <div class="result-value" id="finalSpeedValue">-</div>
+                                <span class="result-unit">m/min</span>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Speed Ratio</div>
+                                <div class="result-value" id="speedRatioValue">-</div>
+                                <span class="result-unit">:1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Constraint Validation (Looperless Mill)</div>
+                        <div id="constraintStatus">
+                            <p style="color: var(--gray); text-align: center; padding: 20px;">
+                                Run calculation to see constraint validation
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Power Distribution</div>
+                        <div class="chart-container">
+                            <canvas id="powerChart"></canvas>
+                        </div>
+                        <div style="margin-top: 15px; text-align: center; color: var(--gray);">
+                            <p style="font-size: 0.85rem;">
+                                Total power reflects net rolling force with tension effects
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Force Distribution</div>
+                        <div class="chart-container">
+                            <canvas id="forceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Thickness Evolution</div>
+                        <div class="chart-container">
+                            <canvas id="thicknessChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Speed Analysis Tab -->
+                <div id="speedTab" class="tab-content">
+                    <div class="section">
+                        <div class="section-title">Speed Metrics</div>
+                        <div class="results-grid">
+                            <div class="result-card">
+                                <div class="result-label">Entry Speed</div>
+                                <div class="result-value" id="entrySpeedValue">-</div>
+                                <span class="result-unit">m/min</span>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Exit Speed</div>
+                                <div class="result-value" id="exitSpeedValue">-</div>
+                                <span class="result-unit">m/min</span>
+                            </div>
+                            <div class="result-card success">
+                                <div class="result-label">Mass Flow Rate</div>
+                                <div class="result-value" id="massFlowValue">-</div>
+                                <span class="result-unit">kg/s</span>
+                            </div>
+                            <div class="result-card warning">
+                                <div class="result-label">Max Flow Error</div>
+                                <div class="result-value" id="flowErrorValue">-</div>
+                                <span class="result-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Speed Profile Through Mill</div>
+                        <div class="chart-container">
+                            <canvas id="speedChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Detailed Speed Data</div>
+                        <table class="data-table" id="speedTable">
+                            <thead>
+                                <tr>
+                                    <th>Stand</th>
+                                    <th>Entry Speed<br>(m/min)</th>
+                                    <th>Exit Speed<br>(m/min)</th>
+                                    <th>Forward Slip<br>(%)</th>
+                                    <th>Roll Speed<br>(rpm)</th>
+                                    <th>Mass Flow<br>(kg/s)</th>
+                                    <th>Flow Error<br>(%)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Tension Analysis Tab -->
+                <div id="tensionTab" class="tab-content">
+                    <div class="section">
+                        <div class="section-title">Tension Metrics (Looperless Configuration)</div>
+                        <div class="results-grid">
+                            <div class="result-card tension">
+                                <div class="result-label">Max Interstand Tension</div>
+                                <div class="result-value" id="maxInterstendTensionValue">-</div>
+                                <span class="result-unit">MPa</span>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Avg Force Reduction</div>
+                                <div class="result-value" id="avgForceReductionValue">-</div>
+                                <span class="result-unit">%</span>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Total Tension Load</div>
+                                <div class="result-value" id="totalTensionLoadValue">-</div>
+                                <span class="result-unit">MN</span>
+                            </div>
+                            <div class="result-card success">
+                                <div class="result-label">Power Saving</div>
+                                <div class="result-value" id="powerSavingValue">-</div>
+                                <span class="result-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Interstand Tension Profile</div>
+                        <div class="chart-container">
+                            <canvas id="tensionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Detailed Tension Data (Looperless Safety)</div>
+                        <table class="data-table" id="tensionTable">
+                            <thead>
+                                <tr>
+                                    <th>Zone</th>
+                                    <th>Tension<br>(MPa)</th>
+                                    <th>Unit Tension<br>(kN/mm)</th>
+                                    <th>Front Tension<br>(MPa)</th>
+                                    <th>Back Tension<br>(MPa)</th>
+                                    <th>Force Reduction<br>(%)</th>
+                                    <th>Yield SF</th>
+                                    <th>Breaking SF</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Full Schedule Tab -->
+                <div id="scheduleTab" class="tab-content">
+                    <div class="section">
+                        <div class="section-title">Reduction Pattern</div>
+                        <div class="chart-container">
+                            <canvas id="reductionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Complete Rolling Schedule</div>
+                        <table class="data-table" id="scheduleTable">
+                            <thead>
+                                <tr>
+                                    <th>Stand</th>
+                                    <th>Entry h<br>(mm)</th>
+                                    <th>Exit h<br>(mm)</th>
+                                    <th>Reduction<br>(%)</th>
+                                    <th>Roll Speed<br>(rpm)</th>
+                                    <th>Strip Speed<br>(m/min)</th>
+                                    <th>Fwd Slip<br>(%)</th>
+                                    <th>Basic Force<br>(MN)</th>
+                                    <th>Net Force<br>(MN)</th>
+                                    <th>Power<br>(MW)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Comparison Tab -->
+                <div id="compareTab" class="tab-content">
+                    <div class="comparison-mode">
+                        <h4>📊 Comparative Analysis Mode</h4>
+                        <p>Save multiple configurations and compare their performance metrics.</p>
+                        
+                        <div class="btn-group" style="margin-top: 15px;">
+                            <button id="saveComparisonBtn" class="btn btn-primary">Save Current to Comparison</button>
+                            <button id="clearComparisonBtn" class="btn btn-secondary">Clear All</button>
+                        </div>
+
+                        <div id="comparisonResults" class="comparison-grid">
+                            <!-- Comparison cards will be added here dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Comparison Charts</div>
+                        <div class="chart-container" style="height: 400px;">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documentation Modal -->
+    <div id="docsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📖 Looperless Tandem Mill Calculator - Documentation</h2>
+                <button class="close-btn" onclick="closeDocsModal()">&times;</button>
+            </div>
+            
+            <div class="docs-section">
+                <h3>🎯 Purpose</h3>
+                <p>This calculator is specifically designed for <strong>looperless tandem cold rolling mills</strong> processing electrical steel. Unlike mills with loopers, looperless mills rely on passive tension control through elastic stretching, requiring significantly lower and more carefully controlled interstand tensions.</p>
+            </div>
+
+            <div class="docs-section">
+                <h3>⚠️ Looperless Mill Constraints</h3>
+                <ul>
+                    <li><strong>Maximum Tension:</strong> 60 MPa absolute limit (vs 150+ MPa with loopers)</li>
+                    <li><strong>Tension as % Yield:</strong> 8-15% (auto-capped, vs 30-40% with loopers)</li>
+                    <li><strong>Yield Safety Factor:</strong> Minimum 2.5 (vs 1.5 with loopers)</li>
+                    <li><strong>Breaking Safety Factor:</strong> Minimum 3.0 (critical for looperless)</li>
+                    <li><strong>Tension Uniformity:</strong> Variation < 40% between zones</li>
+                    <li><strong>Speed Synchronization:</strong> Critical - no looper to buffer speed mismatch</li>
+                </ul>
+            </div>
+
+            <div class="docs-section">
+                <h3>🔧 Tension Strategies for Looperless Mills</h3>
+                <ul>
+                    <li><strong>Uniform Light:</strong> Constant 30-35 MPa throughout mill - safest option</li>
+                    <li><strong>Regressive (Recommended):</strong> Higher tension in early stands (thicker, stronger strip), lower in later stands (thinner, weaker) - 60-90% gradient</li>
+                    <li><strong>Thickness-Optimized:</strong> Tension proportional to √(thickness ratio) - adaptive to strip strength</li>
+                </ul>
+            </div>
+
+            <div class="docs-section">
+                <h3>📐 Mathematical Models</h3>
+                <p><strong>Roll Force (Hitchcock):</strong></p>
+                <ul>
+                    <li>Contact length: L = √(Δh × R)</li>
+                    <li>Roll flattening: R' = R × [1 + 8σₘL/(πEhₘ)]</li>
+                    <li>Mean flow stress: σₘ = K × εⁿ (strain hardening)</li>
+                    <li>Friction correction: k = σₘ(1 + μL/h)</li>
+                    <li>Tension reduction: ΔP = P × (σₜ_avg / σₘ)</li>
+                </ul>
+                
+                <p><strong>Forward Slip:</strong></p>
+                <ul>
+                    <li>f = (1 + μ√(L/R')) - 1</li>
+                    <li>Roll speed: N = V_exit / (1 + f/100) / (2πR)</li>
+                </ul>
+
+                <p><strong>Breaking Load Validation:</strong></p>
+                <ul>
+                    <li>Breaking Load = σ_UTS × h × W</li>
+                    <li>Applied Load = σ_tension × h × W</li>
+                    <li>Safety Factor = Breaking Load / Applied Load ≥ 3.0</li>
+                </ul>
+            </div>
+
+            <div class="docs-section">
+                <h3>📊 Material Database</h3>
+                <p>Comprehensive properties for:</p>
+                <ul>
+                    <li><strong>NGO Steel:</strong> 0.35mm, 0.50mm, 0.65mm (230-530 W/kg grades)</li>
+                    <li><strong>GO Conventional:</strong> 0.27mm (120-140 grade)</li>
+                    <li><strong>GO Hi-B:</strong> 0.23mm (90-120 grade)</li>
+                    <li><strong>GO Domain Refined:</strong> 0.30mm (125-130 grade)</li>
+                </ul>
+                <p>Each grade includes: yield strength, tensile strength, work hardening exponent (n), strength coefficient (K), friction coefficient, elastic modulus, and temperature compensation.</p>
+            </div>
+
+            <div class="docs-section">
+                <h3>✅ Validation Checks</h3>
+                <ul>
+                    <li>Reduction per stand ≤ 45%</li>
+                    <li>Total reduction ≤ 90%</li>
+                    <li>Speed ratio ≤ 8:1 (motor capability)</li>
+                    <li>Strip speed within equipment limits</li>
+                    <li>Roll force within mill capacity</li>
+                    <li>Power consumption within motor rating</li>
+                    <li>Mass flow continuity (< 2% error)</li>
+                    <li><strong>Looperless specific:</strong> Tension ≤ 60 MPa, Breaking SF ≥ 3.0, Yield SF ≥ 2.5</li>
+                </ul>
+            </div>
+
+            <div class="docs-section">
+                <h3>🚀 Usage Tips</h3>
+                <ul>
+                    <li>Start with regressive tension strategy for looperless mills</li>
+                    <li>Keep max tension % at 10-12% for safety (calculator auto-caps at 15%)</li>
+                    <li>Use linear or regressive reduction patterns</li>
+                    <li>Verify all constraint violations before implementation</li>
+                    <li>Export schedule to CSV for Level 2 system integration</li>
+                    <li>Compare multiple strategies using comparison mode</li>
+                    <li>Monitor breaking safety factor - most critical for thin gauges</li>
+                </ul>
+            </div>
+
+            <div class="docs-section">
+                <h3>⚙️ Version Information</h3>
+                <p><strong>Version 2.0 - Looperless Mill Edition</strong></p>
+                <ul>
+                    <li>Specialized for looperless tandem mills</li>
+                    <li>Enhanced safety factors and tension limits</li>
+                    <li>Breaking load validation added</li>
+                    <li>Tension uniformity monitoring</li>
+                    <li>12 electrical steel grades with temperature compensation</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // APPLICATION STATE
+        // ============================================
+        const AppState = {
+            schedule: [],
+            interstendTensions: [],
+            charts: {},
+            validationErrors: [],
+            comparisonData: [],
+            constraints: {
+                maxReductionPerStand: 45,      // %
+                maxTotalReduction: 90,         // %
+                minExitThickness: 0.15,        // mm
+                maxSpeedRatio: 8,              // dimensionless
+                minSafetyFactor: 2.5,          // INCREASED for looperless (was 1.5)
+                minBreakingSafetyFactor: 3.0,  // NEW: Critical for looperless mills
+                maxInterstendTension: 60,      // NEW: MPa absolute limit for looperless
+                maxTensionPercent: 15,         // DECREASED for looperless (was 35)
+                maxTensionVariation: 0.4,      // NEW: Max 40% variation between zones
+                equipment: {
+                    maxRollForce: 25.0,        // MN
+                    maxMotorPower: 4.0,        // MW
+                    maxRollSpeed: 500,         // rpm
+                    maxStripSpeed: 800,        // m/min
+                    maxTension: 60             // MPa - DECREASED for looperless (was 150)
+                }
+            }
+        };
+
+        // ============================================
+        // MATERIAL PROPERTIES DATABASE
+        // ============================================
+        const STEEL_GRADES = {
+            // NON-GRAIN ORIENTED STEEL - 0.35mm THICKNESS
+            ngo_035_230: {
+                name: 'NGO 35W230 (0.35mm - Ultra Low Loss)',
+                thickness: 0.35,
+                yieldStrength: 420,
+                tensileStrength: 600,
+                workHardeningExp: 0.22,
+                strengthCoeff: 690,
+                frictionCoeff: 0.08,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Premium ultra-low loss 0.35mm grade'
+            },
+            ngo_035_270: {
+                name: 'NGO 35W270 (0.35mm - Very Low Loss)',
+                thickness: 0.35,
+                yieldStrength: 405,
+                tensileStrength: 580,
+                workHardeningExp: 0.23,
+                strengthCoeff: 680,
+                frictionCoeff: 0.085,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'High-efficiency 0.35mm grade'
+            },
+            ngo_035_300: {
+                name: 'NGO 35W300 (0.35mm - Low Loss)',
+                thickness: 0.35,
+                yieldStrength: 390,
+                tensileStrength: 560,
+                workHardeningExp: 0.24,
+                strengthCoeff: 670,
+                frictionCoeff: 0.09,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Standard low-loss 0.35mm grade'
+            },
+            ngo_035_360: {
+                name: 'NGO 35W360 (0.35mm - Medium Loss)',
+                thickness: 0.35,
+                yieldStrength: 375,
+                tensileStrength: 540,
+                workHardeningExp: 0.25,
+                strengthCoeff: 660,
+                frictionCoeff: 0.095,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Balanced performance 0.35mm'
+            },
+            ngo_035_400: {
+                name: 'NGO 35W400 (0.35mm - Standard)',
+                thickness: 0.35,
+                yieldStrength: 360,
+                tensileStrength: 520,
+                workHardeningExp: 0.26,
+                strengthCoeff: 650,
+                frictionCoeff: 0.10,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'General purpose 0.35mm'
+            },
+            
+            // NON-GRAIN ORIENTED STEEL - 0.50mm THICKNESS
+            ngo_050_290: {
+                name: 'NGO 50W290 (0.50mm - Very Low Loss)',
+                thickness: 0.50,
+                yieldStrength: 395,
+                tensileStrength: 570,
+                workHardeningExp: 0.23,
+                strengthCoeff: 675,
+                frictionCoeff: 0.085,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Premium 0.50mm grade'
+            },
+            ngo_050_350: {
+                name: 'NGO 50W350 (0.50mm - Low Loss)',
+                thickness: 0.50,
+                yieldStrength: 380,
+                tensileStrength: 550,
+                workHardeningExp: 0.24,
+                strengthCoeff: 665,
+                frictionCoeff: 0.09,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Standard 0.50mm grade'
+            },
+            ngo_050_400: {
+                name: 'NGO 50W400 (0.50mm - Medium Loss)',
+                thickness: 0.50,
+                yieldStrength: 365,
+                tensileStrength: 530,
+                workHardeningExp: 0.25,
+                strengthCoeff: 655,
+                frictionCoeff: 0.095,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Economical 0.50mm grade'
+            },
+            ngo_050_470: {
+                name: 'NGO 50W470 (0.50mm - Medium-High Loss)',
+                thickness: 0.50,
+                yieldStrength: 350,
+                tensileStrength: 510,
+                workHardeningExp: 0.26,
+                strengthCoeff: 645,
+                frictionCoeff: 0.10,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'General purpose 0.50mm'
+            },
+            
+            // NON-GRAIN ORIENTED STEEL - 0.65mm THICKNESS
+            ngo_065_310: {
+                name: 'NGO 65W310 (0.65mm - Very Low Loss)',
+                thickness: 0.65,
+                yieldStrength: 380,
+                tensileStrength: 540,
+                workHardeningExp: 0.24,
+                strengthCoeff: 670,
+                frictionCoeff: 0.09,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Premium 0.65mm grade'
+            },
+            ngo_065_400: {
+                name: 'NGO 65W400 (0.65mm - Low Loss)',
+                thickness: 0.65,
+                yieldStrength: 365,
+                tensileStrength: 520,
+                workHardeningExp: 0.25,
+                strengthCoeff: 660,
+                frictionCoeff: 0.095,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Standard 0.65mm grade'
+            },
+            ngo_065_470: {
+                name: 'NGO 65W470 (0.65mm - Medium Loss)',
+                thickness: 0.65,
+                yieldStrength: 350,
+                tensileStrength: 490,
+                workHardeningExp: 0.26,
+                strengthCoeff: 650,
+                frictionCoeff: 0.10,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'General purpose 0.65mm'
+            },
+            ngo_065_530: {
+                name: 'NGO 65W530 (0.65mm - Medium-High Loss)',
+                thickness: 0.65,
+                yieldStrength: 340,
+                tensileStrength: 475,
+                workHardeningExp: 0.27,
+                strengthCoeff: 640,
+                frictionCoeff: 0.105,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Economy 0.65mm grade'
+            },
+            
+            // GRAIN ORIENTED STEEL - CONVENTIONAL
+            go_027_120: {
+                name: 'GO 27Q120 (0.27mm - High Permeability)',
+                thickness: 0.27,
+                yieldStrength: 340,
+                tensileStrength: 470,
+                workHardeningExp: 0.27,
+                strengthCoeff: 630,
+                frictionCoeff: 0.07,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Power transformers, high grade'
+            },
+            go_027_125: {
+                name: 'GO 27Q125 (0.27mm - High Permeability)',
+                thickness: 0.27,
+                yieldStrength: 335,
+                tensileStrength: 465,
+                workHardeningExp: 0.28,
+                strengthCoeff: 625,
+                frictionCoeff: 0.07,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Power transformers, standard'
+            },
+            go_027_130: {
+                name: 'GO 27Q130 (0.27mm - Medium-High Permeability)',
+                thickness: 0.27,
+                yieldStrength: 325,
+                tensileStrength: 455,
+                workHardeningExp: 0.28,
+                strengthCoeff: 620,
+                frictionCoeff: 0.07,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Distribution transformers'
+            },
+            go_027_140: {
+                name: 'GO 27Q140 (0.27mm - Medium Permeability)',
+                thickness: 0.27,
+                yieldStrength: 310,
+                tensileStrength: 440,
+                workHardeningExp: 0.29,
+                strengthCoeff: 610,
+                frictionCoeff: 0.07,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'General transformers'
+            },
+            
+            // GRAIN ORIENTED STEEL - HIGH PERMEABILITY
+            go_023_090: {
+                name: 'GO 23Q090 (0.23mm - Ultra High Permeability)',
+                thickness: 0.23,
+                yieldStrength: 360,
+                tensileStrength: 490,
+                workHardeningExp: 0.26,
+                strengthCoeff: 650,
+                frictionCoeff: 0.06,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Premium transformers, ultra-thin'
+            },
+            go_023_110: {
+                name: 'GO 23Q110 (0.23mm - Very High Permeability)',
+                thickness: 0.23,
+                yieldStrength: 345,
+                tensileStrength: 475,
+                workHardeningExp: 0.27,
+                strengthCoeff: 640,
+                frictionCoeff: 0.065,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'High-efficiency transformers'
+            },
+            go_023_120: {
+                name: 'GO 23Q120 (0.23mm - High Permeability)',
+                thickness: 0.23,
+                yieldStrength: 320,
+                tensileStrength: 450,
+                workHardeningExp: 0.28,
+                strengthCoeff: 620,
+                frictionCoeff: 0.07,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Power transformers, thin gauge'
+            },
+            
+            // GRAIN ORIENTED STEEL - DOMAIN REFINED
+            go_030_125: {
+                name: 'GO 30Q125 (0.30mm - High Permeability)',
+                thickness: 0.30,
+                yieldStrength: 330,
+                tensileStrength: 460,
+                workHardeningExp: 0.28,
+                strengthCoeff: 625,
+                frictionCoeff: 0.075,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Domain refined, high grade'
+            },
+            go_030_130: {
+                name: 'GO 30Q130 (0.30mm - Medium Permeability)',
+                thickness: 0.30,
+                yieldStrength: 320,
+                tensileStrength: 450,
+                workHardeningExp: 0.28,
+                strengthCoeff: 620,
+                frictionCoeff: 0.075,
+                elasticModulus: 200000,
+                density: 7650,
+                tempCoeff: -0.005,
+                description: 'Domain refined, standard'
+            }
+        };
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        function getMaterialProperties(gradeKey, temperature = 20) {
+            const baseMaterial = STEEL_GRADES[gradeKey];
+            if (!baseMaterial) {
+                console.error('Unknown steel grade:', gradeKey);
+                return STEEL_GRADES.ngo_035_300; // Default fallback
+            }
+            
+            // Apply temperature compensation
+            const tempDelta = temperature - 20;
+            const yieldStrength = baseMaterial.yieldStrength * (1 + baseMaterial.tempCoeff * tempDelta);
+            const tensileStrength = baseMaterial.tensileStrength * (1 + baseMaterial.tempCoeff * tempDelta);
+            
+            return {
+                ...baseMaterial,
+                yieldStrength,
+                tensileStrength
+            };
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status-message show ${type}`;
+            
+            setTimeout(() => {
+                statusEl.classList.remove('show');
+            }, 5000);
+        }
+
+        // ============================================
+        // VALIDATION SYSTEM
+        // ============================================
+
+        function validateInput(fieldId, value, rules = {}) {
+            const field = document.getElementById(fieldId);
+            const errorEl = document.getElementById(fieldId + '-error');
+            
+            let isValid = true;
+            let errorMessage = '';
+
+            // Check if value is a number
+            if (isNaN(value) || value === null || value === '') {
+                isValid = false;
+                errorMessage = 'Please enter a valid number';
+            }
+            // Check min/max range
+            else if (rules.min !== undefined && value < rules.min) {
+                isValid = false;
+                errorMessage = `Value must be at least ${rules.min}`;
+            }
+            else if (rules.max !== undefined && value > rules.max) {
+                isValid = false;
+                errorMessage = `Value must not exceed ${rules.max}`;
+            }
+            // Custom validation
+            else if (rules.custom) {
+                const customResult = rules.custom(value);
+                if (!customResult.valid) {
+                    isValid = false;
+                    errorMessage = customResult.message;
+                }
+            }
+
+            // Apply visual feedback
+            if (field && errorEl) {
+                if (!isValid) {
+                    field.classList.add('error');
+                    field.classList.remove('warning');
+                    errorEl.textContent = errorMessage;
+                    errorEl.classList.add('show');
+                } else {
+                    field.classList.remove('error', 'warning');
+                    errorEl.classList.remove('show');
+                }
+            }
+
+            return { valid: isValid, message: errorMessage };
+        }
+
+        function validateAllInputs() {
+            AppState.validationErrors = [];
+            
+            // Get all input values
+            const numStands = parseInt(document.getElementById('numStands').value);
+            const entryThickness = parseFloat(document.getElementById('entryThickness').value);
+            const exitThickness = parseFloat(document.getElementById('exitThickness').value);
+            const stripWidth = parseFloat(document.getElementById('stripWidth').value);
+            const entrySpeed = parseFloat(document.getElementById('entrySpeed').value);
+            const rollRadius = parseFloat(document.getElementById('rollRadius').value);
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const maxTensionPct = parseFloat(document.getElementById('maxTensionPct').value);
+            
+            // Equipment limits
+            const maxRollForce = parseFloat(document.getElementById('maxRollForce').value);
+            const maxMotorPower = parseFloat(document.getElementById('maxMotorPower').value);
+            const maxRollSpeed = parseFloat(document.getElementById('maxRollSpeed').value);
+            const maxStripSpeed = parseFloat(document.getElementById('maxStripSpeed').value);
+            const maxTension = parseFloat(document.getElementById('maxTension').value);
+
+            // Validate each field
+            const validations = [
+                { field: 'numStands', value: numStands, min: 2, max: 7 },
+                { field: 'entryThickness', value: entryThickness, min: 0.5, max: 5.0 },
+                { field: 'exitThickness', value: exitThickness, min: 0.15, max: 1.5 },
+                { field: 'stripWidth', value: stripWidth, min: 800, max: 1500 },
+                { field: 'entrySpeed', value: entrySpeed, min: 50, max: 500 },
+                { field: 'rollRadius', value: rollRadius, min: 200, max: 500 },
+                { field: 'temperature', value: temperature, min: 15, max: 60 },
+                { field: 'maxTensionPct', value: maxTensionPct, min: 8, max: 15 },
+                // Equipment limits
+                { field: 'maxRollForce', value: maxRollForce, min: 10, max: 50 },
+                { field: 'maxMotorPower', value: maxMotorPower, min: 1, max: 10 },
+                { field: 'maxRollSpeed', value: maxRollSpeed, min: 200, max: 1000 },
+                { field: 'maxStripSpeed', value: maxStripSpeed, min: 300, max: 1500 },
+                { field: 'maxTension', value: maxTension, min: 40, max: 80 }
+            ];
+
+            validations.forEach(v => {
+                const result = validateInput(v.field, v.value, { min: v.min, max: v.max });
+                if (!result.valid) {
+                    AppState.validationErrors.push({
+                        field: v.field,
+                        message: result.message
+                    });
+                }
+            });
+
+            // Cross-field validations
+            if (exitThickness >= entryThickness) {
+                AppState.validationErrors.push({
+                    field: 'exitThickness',
+                    message: 'Exit thickness must be less than entry thickness'
+                });
+            }
+
+            const totalReduction = ((entryThickness - exitThickness) / entryThickness) * 100;
+            if (totalReduction > AppState.constraints.maxTotalReduction) {
+                AppState.validationErrors.push({
+                    field: 'exitThickness',
+                    message: `Total reduction (${totalReduction.toFixed(1)}%) exceeds maximum ${AppState.constraints.maxTotalReduction}%`
+                });
+            }
+
+            const avgReduction = totalReduction / numStands;
+            if (avgReduction > AppState.constraints.maxReductionPerStand) {
+                AppState.validationErrors.push({
+                    field: 'numStands',
+                    message: `Average reduction per stand (${avgReduction.toFixed(1)}%) exceeds maximum ${AppState.constraints.maxReductionPerStand}%`
+                });
+            }
+
+            // Looperless-specific warning
+            if (maxTensionPct > 15) {
+                AppState.validationErrors.push({
+                    field: 'maxTensionPct',
+                    message: `Tension limited to 15% for looperless mills (entered: ${maxTensionPct}%)`
+                });
+            }
+
+            // Display validation summary
+            displayValidationSummary();
+
+            return AppState.validationErrors.length === 0;
+        }
+
+        function displayValidationSummary() {
+            const summary = document.getElementById('validationSummary');
+            const list = document.getElementById('validationList');
+            
+            if (AppState.validationErrors.length > 0) {
+                list.innerHTML = AppState.validationErrors
+                    .map(error => `<li><strong>${error.field}:</strong> ${error.message}</li>`)
+                    .join('');
+                summary.classList.add('show');
+            } else {
+                summary.classList.remove('show');
+            }
+        }
+
+        // ============================================
+        // CONSTRAINT VALIDATION SYSTEM
+        // ============================================
+        
+        function validateConstraints(schedule) {
+            const constraints = [];
+            
+            schedule.forEach(stand => {
+                // Check reduction per stand
+                if (stand.reduction > AppState.constraints.maxReductionPerStand) {
+                    constraints.push({
+                        type: 'error',
+                        stand: stand.stand,
+                        parameter: 'Reduction',
+                        value: stand.reduction.toFixed(1),
+                        limit: AppState.constraints.maxReductionPerStand,
+                        message: `Stand ${stand.stand}: Reduction ${stand.reduction.toFixed(1)}% exceeds limit`
+                    });
+                } else if (stand.reduction > AppState.constraints.maxReductionPerStand * 0.9) {
+                    constraints.push({
+                        type: 'warning',
+                        stand: stand.stand,
+                        parameter: 'Reduction',
+                        value: stand.reduction.toFixed(1),
+                        limit: AppState.constraints.maxReductionPerStand,
+                        message: `Stand ${stand.stand}: Reduction ${stand.reduction.toFixed(1)}% approaching limit`
+                    });
+                }
+
+                // Check exit thickness
+                if (stand.exitThickness < AppState.constraints.minExitThickness) {
+                    constraints.push({
+                        type: 'error',
+                        stand: stand.stand,
+                        parameter: 'Exit Thickness',
+                        value: stand.exitThickness.toFixed(3),
+                        limit: AppState.constraints.minExitThickness,
+                        message: `Stand ${stand.stand}: Exit thickness ${stand.exitThickness.toFixed(3)}mm below minimum`
+                    });
+                }
+
+                // Check equipment limits
+                if (stand.netRollForce > AppState.constraints.equipment.maxRollForce) {
+                    constraints.push({
+                        type: 'error',
+                        stand: stand.stand,
+                        parameter: 'Roll Force',
+                        value: stand.netRollForce.toFixed(2),
+                        limit: AppState.constraints.equipment.maxRollForce,
+                        message: `Stand ${stand.stand}: Roll force ${stand.netRollForce.toFixed(2)} MN exceeds capacity`
+                    });
+                }
+
+                if (stand.power > AppState.constraints.equipment.maxMotorPower) {
+                    constraints.push({
+                        type: 'error',
+                        stand: stand.stand,
+                        parameter: 'Power',
+                        value: stand.power.toFixed(2),
+                        limit: AppState.constraints.equipment.maxMotorPower,
+                        message: `Stand ${stand.stand}: Power ${stand.power.toFixed(2)} MW exceeds motor rating`
+                    });
+                }
+
+                if (stand.rollSpeed > AppState.constraints.equipment.maxRollSpeed) {
+                    constraints.push({
+                        type: 'error',
+                        stand: stand.stand,
+                        parameter: 'Roll Speed',
+                        value: stand.rollSpeed.toFixed(0),
+                        limit: AppState.constraints.equipment.maxRollSpeed,
+                        message: `Stand ${stand.stand}: Roll speed ${stand.rollSpeed.toFixed(0)} rpm exceeds limit`
+                    });
+                }
+
+                if (stand.exitSpeed > AppState.constraints.equipment.maxStripSpeed) {
+                    constraints.push({
+                        type: 'error',
+                        stand: stand.stand,
+                        parameter: 'Strip Speed',
+                        value: stand.exitSpeed.toFixed(0),
+                        limit: AppState.constraints.equipment.maxStripSpeed,
+                        message: `Stand ${stand.stand}: Strip speed ${stand.exitSpeed.toFixed(0)} m/min exceeds limit`
+                    });
+                }
+            });
+
+            // Check speed ratio
+            const speedRatio = schedule[schedule.length - 1].exitSpeed / schedule[0].entrySpeed;
+            if (speedRatio > AppState.constraints.maxSpeedRatio) {
+                constraints.push({
+                    type: 'error',
+                    parameter: 'Speed Ratio',
+                    value: speedRatio.toFixed(2),
+                    limit: AppState.constraints.maxSpeedRatio,
+                    message: `Speed ratio ${speedRatio.toFixed(2)}:1 exceeds motor capability limit`
+                });
+            }
+
+            // LOOPERLESS MILL SPECIFIC CHECKS
+            AppState.interstendTensions.forEach(tension => {
+                // Check absolute tension limit for looperless
+                if (tension.tension > AppState.constraints.maxInterstendTension) {
+                    constraints.push({
+                        type: 'error',
+                        parameter: 'Interstand Tension',
+                        value: tension.tension.toFixed(1),
+                        limit: AppState.constraints.maxInterstendTension,
+                        message: `Zone ${tension.zone}: Tension ${tension.tension.toFixed(1)} MPa exceeds looperless limit (${AppState.constraints.maxInterstendTension} MPa)`
+                    });
+                } else if (tension.tension > AppState.constraints.maxInterstendTension * 0.9) {
+                    constraints.push({
+                        type: 'warning',
+                        parameter: 'Interstand Tension',
+                        value: tension.tension.toFixed(1),
+                        limit: AppState.constraints.maxInterstendTension,
+                        message: `Zone ${tension.zone}: Tension ${tension.tension.toFixed(1)} MPa approaching looperless limit`
+                    });
+                }
+
+                // Check yield safety factor
+                if (tension.safetyFactor < AppState.constraints.minSafetyFactor) {
+                    constraints.push({
+                        type: 'error',
+                        parameter: 'Yield Safety Factor',
+                        value: tension.safetyFactor.toFixed(2),
+                        limit: AppState.constraints.minSafetyFactor,
+                        message: `Zone ${tension.zone}: Yield SF ${tension.safetyFactor.toFixed(2)} below minimum for looperless mill`
+                    });
+                }
+
+                // Check breaking safety factor (CRITICAL for looperless)
+                if (tension.breakingSafetyFactor < AppState.constraints.minBreakingSafetyFactor) {
+                    constraints.push({
+                        type: 'error',
+                        parameter: 'Breaking Safety Factor',
+                        value: tension.breakingSafetyFactor.toFixed(2),
+                        limit: AppState.constraints.minBreakingSafetyFactor,
+                        message: `Zone ${tension.zone}: Breaking SF ${tension.breakingSafetyFactor.toFixed(2)} CRITICAL - Strip breakage risk in looperless mill`
+                    });
+                } else if (tension.breakingSafetyFactor < AppState.constraints.minBreakingSafetyFactor * 1.2) {
+                    constraints.push({
+                        type: 'warning',
+                        parameter: 'Breaking Safety Factor',
+                        value: tension.breakingSafetyFactor.toFixed(2),
+                        limit: AppState.constraints.minBreakingSafetyFactor,
+                        message: `Zone ${tension.zone}: Breaking SF ${tension.breakingSafetyFactor.toFixed(2)} approaching minimum`
+                    });
+                }
+            });
+
+            // Check tension uniformity (important for looperless)
+            if (AppState.interstendTensions.length > 1) {
+                const tensionValues = AppState.interstendTensions.map(t => t.tension);
+                const avgTension = tensionValues.reduce((a, b) => a + b, 0) / tensionValues.length;
+                const maxDeviation = Math.max(...tensionValues.map(t => Math.abs(t - avgTension)));
+                const variationRatio = maxDeviation / avgTension;
+                
+                if (variationRatio > AppState.constraints.maxTensionVariation) {
+                    constraints.push({
+                        type: 'warning',
+                        parameter: 'Tension Uniformity',
+                        value: (variationRatio * 100).toFixed(1) + '%',
+                        limit: (AppState.constraints.maxTensionVariation * 100).toFixed(0) + '%',
+                        message: `High tension variation (${(variationRatio * 100).toFixed(1)}%) may cause stability issues in looperless mill`
+                    });
+                }
+            }
+
+            return constraints;
+        }
+
+        function displayConstraintStatus(constraints) {
+            const statusDiv = document.getElementById('constraintStatus');
+            
+            if (constraints.length === 0) {
+                statusDiv.innerHTML = `
+                    <div class="constraint-item pass">
+                        ✅ All constraints satisfied - Schedule is valid for looperless tandem mill
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div style="margin-top: 10px;">';
+            
+            constraints.forEach(c => {
+                const icon = c.type === 'error' ? '❌' : '⚠️';
+                const color = c.type === 'error' ? 'var(--danger)' : 'var(--warning)';
+                
+                html += `
+                    <div style="padding: 8px; margin: 5px 0; background: ${c.type === 'error' ? '#fee2e2' : '#fef3c7'}; 
+                                border-left: 4px solid ${color}; border-radius: 4px; font-size: 0.85rem;">
+                        ${icon} ${c.message}
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            statusDiv.innerHTML = html;
+        }
+
+        // ============================================
+        // REDUCTION PATTERN CALCULATION
+        // ============================================
+        
+        function calculateReductionPattern(entryThickness, exitThickness, numStands, patternType) {
+            const thicknesses = [entryThickness];
+            const reductions = [];
+            
+            if (patternType === 'linear') {
+                // Equal PERCENTAGE reduction per stand
+                const reductionRatio = Math.pow(exitThickness / entryThickness, 1.0 / numStands);
+                
+                let currentThickness = entryThickness;
+                for (let i = 0; i < numStands; i++) {
+                    const nextThickness = currentThickness * reductionRatio;
+                    const absoluteReduction = currentThickness - nextThickness;
+                    reductions.push(absoluteReduction);
+                    thicknesses.push(nextThickness);
+                    currentThickness = nextThickness;
+                }
+                
+            } else {
+                // Progressive and Regressive patterns
+                const reductionFactors = [];
+                
+                for (let i = 0; i < numStands; i++) {
+                    let factor;
+                    if (patternType === 'progressive') {
+                        // Increasing reduction: 75% to 125% of average
+                        factor = 0.75 + (0.5 * i / (numStands - 1));
+                    } else { // regressive
+                        // Decreasing reduction: 125% to 75% of average
+                        factor = 1.25 - (0.5 * i / (numStands - 1));
+                    }
+                    reductionFactors.push(factor);
+                }
+                
+                const totalReductionRatio = exitThickness / entryThickness;
+                const avgReductionPct = 1 - Math.pow(totalReductionRatio, 1.0 / numStands);
+                
+                let currentThickness = entryThickness;
+                for (let i = 0; i < numStands; i++) {
+                    const standReductionPct = avgReductionPct * reductionFactors[i];
+                    const nextThickness = currentThickness * (1 - standReductionPct);
+                    const absoluteReduction = currentThickness - nextThickness;
+                    reductions.push(absoluteReduction);
+                    thicknesses.push(nextThickness);
+                    currentThickness = nextThickness;
+                }
+                
+                // Adjust final thickness to match target
+                const finalThickness = thicknesses[numStands];
+                const error = finalThickness - exitThickness;
+                
+                if (Math.abs(error) > 0.001) {
+                    const errorPerStand = error / numStands;
+                    for (let i = 1; i <= numStands; i++) {
+                        thicknesses[i] -= errorPerStand * i;
+                    }
+                    
+                    for (let i = 0; i < numStands; i++) {
+                        reductions[i] = thicknesses[i] - thicknesses[i + 1];
+                    }
+                }
+            }
+            
+            return { reductions, thicknesses };
+        }
+
+        // ============================================
+        // TENSION CALCULATION - LOOPERLESS VERSION
+        // ============================================
+        
+        function calculateInterstendTensions(schedule, material, strategy, maxTensionPct) {
+            const tensions = [];
+            
+            // LOOPERLESS MILL: Limit to 8-15% of yield strength
+            const LOOPERLESS_MAX_PERCENT = Math.min(maxTensionPct, 15);  // Cap at 15%
+            const maxTensionFromYield = material.yieldStrength * (LOOPERLESS_MAX_PERCENT / 100);
+            
+            // Additional safety: Absolute maximum tension for electrical steel in looperless mills
+            const ABSOLUTE_MAX_TENSION = 60;  // MPa - industry standard
+            const safeTension = Math.min(maxTensionFromYield, ABSOLUTE_MAX_TENSION);
+            
+            // Get strip width for load calculations
+            const stripWidth = parseFloat(document.getElementById('stripWidth').value);
+            
+            for (let i = 0; i < schedule.length - 1; i++) {
+                const upstreamStand = schedule[i];
+                const downstreamStand = schedule[i + 1];
+                
+                let tensionValue;
+                
+                if (strategy === 'uniform') {
+                    // Uniform light tension: 60-70% of safe max
+                    tensionValue = safeTension * 0.65;
+                    
+                } else if (strategy === 'regressive') {
+                    // REGRESSIVE: Higher tension early (thicker, stronger), lower late (thinner, weaker)
+                    // This is RECOMMENDED for looperless mills
+                    const progressFactor = 1 - (i / (schedule.length - 2));  // Decreasing: 1.0 → 0.0
+                    tensionValue = safeTension * (0.6 + 0.3 * progressFactor);  // 60-90% range
+                    
+                } else { // optimized (thickness-based)
+                    // Base tension on thickness ratio - thicker strip can handle more
+                    const thicknessRatio = upstreamStand.exitThickness / schedule[0].entryThickness;
+                    const thicknessFactor = Math.sqrt(thicknessRatio);  // Square root provides smooth gradient
+                    
+                    // Target: 30-50 MPa range for electrical steel
+                    tensionValue = safeTension * thicknessFactor * 0.70;
+                }
+                
+                // Ensure we don't exceed safe tension
+                tensionValue = Math.min(tensionValue, safeTension);
+                
+                // Calculate unit tension (kN/mm)
+                const unitTension = tensionValue * upstreamStand.exitThickness / 1000;
+                
+                // CRITICAL: Validate against strip breaking load
+                const breakingLoad = material.tensileStrength * upstreamStand.exitThickness * stripWidth / 1000;  // kN
+                const appliedLoad = tensionValue * upstreamStand.exitThickness * stripWidth / 1000;  // kN
+                const breakingSafetyFactor = breakingLoad / appliedLoad;
+                
+                // Safety factors
+                const yieldSafetyFactor = material.yieldStrength / tensionValue;
+                
+                // Console warnings for critical safety issues
+                if (breakingSafetyFactor < 3.0) {
+                    console.warn(`⚠️ Zone ${i+1}: Breaking safety factor ${breakingSafetyFactor.toFixed(2)} < 3.0 - CRITICAL for looperless mill!`);
+                }
+                if (yieldSafetyFactor < 2.5) {
+                    console.warn(`⚠️ Zone ${i+1}: Yield safety factor ${yieldSafetyFactor.toFixed(2)} < 2.5 - Not recommended for looperless mill`);
+                }
+                if (tensionValue > 60) {
+                    console.warn(`⚠️ Zone ${i+1}: Tension ${tensionValue.toFixed(1)} MPa exceeds 60 MPa looperless limit`);
+                }
+                
+                tensions.push({
+                    zone: i + 1,
+                    upstreamStand: i + 1,
+                    downstreamStand: i + 2,
+                    tension: tensionValue,
+                    tensionLoad: unitTension,
+                    frontTension: tensionValue,
+                    backTension: i > 0 ? tensions[i-1].tension : 0,
+                    safetyFactor: yieldSafetyFactor,
+                    breakingSafetyFactor: breakingSafetyFactor,  // NEW
+                    appliedLoad: appliedLoad,                      // NEW
+                    breakingLoad: breakingLoad                     // NEW
+                });
+            }
+            
+            return tensions;
+        }
+
+        // ============================================
+        // ROLL FORCE CALCULATION
+        // ============================================
+        
+        function calculateRollForce(h0, h1, width, rollRadius, material, frontTension = 0, backTension = 0) {
+            const reduction = h0 - h1;
+            const h_mean = (h0 + h1) / 2;
+            const strain = Math.log(h0 / h1);
+            
+            // Mean flow stress with strain hardening
+            const sigma_m = material.strengthCoeff * Math.pow(strain, material.workHardeningExp);
+            
+            // Contact length (Hitchcock formula)
+            const L = Math.sqrt(reduction * rollRadius);
+            
+            // Flattened roll radius (Hitchcock)
+            const R_prime = rollRadius * (1 + (8 * sigma_m * L) / (Math.PI * material.elasticModulus * h_mean));
+            
+            // Mean deformation resistance with friction
+            const k = sigma_m * (1 + material.frictionCoeff * L / h_mean);
+            
+            // Basic rolling force: k (MPa) × width (mm) × L (mm) → N, then convert to MN
+            const basicForce = k * width * L / 1000000;
+            
+            // Tension effect on rolling force
+            const avgTension = (frontTension + backTension) / 2;
+            const tensionReduction = (avgTension / sigma_m) * 100;
+            const netForce = basicForce * (1 - tensionReduction / 100);
+            
+            return {
+                basicForce,
+                netForce,
+                contactLength: L,
+                flattenedRadius: R_prime,
+                tensionReduction
+            };
+        }
+
+        // FORWARD SLIP CALCULATION
+        function calculateForwardSlip(reduction, contactLength, flattenedRadius, friction) {
+            const slipFactor = 1 + friction * Math.sqrt(contactLength / flattenedRadius);
+            return (slipFactor - 1) * 100;
+        }
+
+        // ============================================
+        // MAIN CALCULATION FUNCTION
+        // ============================================
+        
+        function calculateSchedule() {
+            try {
+                // Validate inputs first
+                if (!validateAllInputs()) {
+                    showStatus('Please correct the input errors before calculating', 'error');
+                    return;
+                }
+
+                showStatus('Calculating rolling schedule for looperless tandem mill...', 'success');
+                
+                // Get input values
+                const numStands = parseInt(document.getElementById('numStands').value);
+                const entryThickness = parseFloat(document.getElementById('entryThickness').value);
+                const exitThickness = parseFloat(document.getElementById('exitThickness').value);
+                const stripWidth = parseFloat(document.getElementById('stripWidth').value);
+                const entrySpeed = parseFloat(document.getElementById('entrySpeed').value);
+                const rollRadius = parseFloat(document.getElementById('rollRadius').value);
+                const patternType = document.getElementById('patternType').value;
+                const steelGrade = document.getElementById('steelGrade').value;
+                const tensionStrategy = document.getElementById('tensionStrategy').value;
+                const maxTensionPct = parseFloat(document.getElementById('maxTensionPct').value);
+                const temperature = parseFloat(document.getElementById('temperature').value);
+                
+                // Get temperature-compensated material properties
+                const material = getMaterialProperties(steelGrade, temperature);
+                
+                // Get mill equipment limits from inputs
+                AppState.constraints.equipment = {
+                    maxRollForce: parseFloat(document.getElementById('maxRollForce').value),
+                    maxMotorPower: parseFloat(document.getElementById('maxMotorPower').value),
+                    maxRollSpeed: parseFloat(document.getElementById('maxRollSpeed').value),
+                    maxStripSpeed: parseFloat(document.getElementById('maxStripSpeed').value),
+                    maxTension: parseFloat(document.getElementById('maxTension').value)
+                };
+                
+                // Calculate reduction pattern
+                const pattern = calculateReductionPattern(entryThickness, exitThickness, numStands, patternType);
+                
+                // Initialize schedule
+                AppState.schedule = [];
+                let currentSpeed = entrySpeed;
+                
+                // Calculate each stand
+                for (let i = 0; i < numStands; i++) {
+                    const h0 = pattern.thicknesses[i];
+                    const h1 = pattern.thicknesses[i + 1];
+                    const reduction = pattern.reductions[i];
+                    const reductionPct = (reduction / h0) * 100;
+                    
+                    // Initial force calculation without tension
+                    const forceCalc = calculateRollForce(h0, h1, stripWidth, rollRadius, material, 0, 0);
+                    
+                    // Calculate speeds
+                    const exitSpeed = currentSpeed * (h0 / h1);
+                    const forwardSlip = calculateForwardSlip(reduction, forceCalc.contactLength, forceCalc.flattenedRadius, material.frictionCoeff);
+                    const rollSpeed = exitSpeed / (1 + forwardSlip / 100);
+                    const rollSpeedRpm = (rollSpeed * 1000) / (2 * Math.PI * rollRadius);
+                    
+                    // Calculate power
+                    const torque = forceCalc.basicForce * forceCalc.contactLength / 2;
+                    const power = (torque * rollSpeedRpm * 2 * Math.PI) / 60000;
+                    
+                    // Mass flow
+                    const massFlow = (currentSpeed / 60) * h0 * stripWidth * material.density / 1e6;
+                    const massFlowExit = (exitSpeed / 60) * h1 * stripWidth * material.density / 1e6;
+                    const flowError = ((massFlowExit - massFlow) / massFlow) * 100;
+                    
+                    AppState.schedule.push({
+                        stand: i + 1,
+                        entryThickness: h0,
+                        exitThickness: h1,
+                        reduction: reductionPct,
+                        entrySpeed: currentSpeed,
+                        exitSpeed: exitSpeed,
+                        forwardSlip: forwardSlip,
+                        rollSpeed: rollSpeedRpm,
+                        basicRollForce: forceCalc.basicForce,
+                        netRollForce: forceCalc.basicForce,
+                        power: power,
+                        massFlow: massFlow,
+                        flowError: flowError,
+                        contactLength: forceCalc.contactLength,
+                        flattenedRadius: forceCalc.flattenedRadius,
+                        tensionReduction: 0
+                    });
+                    
+                    currentSpeed = exitSpeed;
+                }
+                
+                // Calculate interstand tensions (LOOPERLESS VERSION)
+                AppState.interstendTensions = calculateInterstendTensions(AppState.schedule, material, tensionStrategy, maxTensionPct);
+                
+                // Recalculate forces with tension effects
+                for (let i = 0; i < AppState.schedule.length; i++) {
+                    const stand = AppState.schedule[i];
+                    const backTension = i > 0 ? AppState.interstendTensions[i - 1].tension : 0;
+                    const frontTension = i < AppState.interstendTensions.length ? AppState.interstendTensions[i].tension : 0;
+                    
+                    const forceCalc = calculateRollForce(
+                        stand.entryThickness,
+                        stand.exitThickness,
+                        stripWidth,
+                        rollRadius,
+                        material,
+                        frontTension,
+                        backTension
+                    );
+                    
+                    stand.netRollForce = forceCalc.netForce;
+                    stand.tensionReduction = forceCalc.tensionReduction;
+                    
+                    // Recalculate power with net force
+                    const torque = forceCalc.netForce * forceCalc.contactLength / 2;
+                    stand.power = (torque * stand.rollSpeed * 2 * Math.PI) / 60000;
+                }
+                
+                // Validate constraints (includes looperless-specific checks)
+                const constraintViolations = validateConstraints(AppState.schedule);
+                displayConstraintStatus(constraintViolations);
+                
+                // Update display
+                updateDisplay();
+                
+                const errorCount = constraintViolations.filter(c => c.type === 'error').length;
+                const warningCount = constraintViolations.filter(c => c.type === 'warning').length;
+                
+                if (errorCount > 0) {
+                    showStatus(`Schedule calculated with ${errorCount} constraint violation(s) - see Overview tab`, 'error');
+                } else if (warningCount > 0) {
+                    showStatus(`Schedule calculated with ${warningCount} warning(s) - see Overview tab`, 'warning');
+                } else {
+                    showStatus('Schedule calculated successfully - all looperless mill constraints satisfied ✓', 'success');
+                }
+                
+            } catch (error) {
+                console.error('Calculation error:', error);
+                showStatus('Error during calculation: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // CHART INITIALIZATION
+        // ============================================
+        
+        function initCharts() {
+            try {
+                const chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                };
+
+                // Power Chart
+                const powerCtx = document.getElementById('powerChart');
+                if (powerCtx) {
+                    AppState.charts.power = new Chart(powerCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Power (MW)',
+                                data: [],
+                                backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                                borderColor: 'rgba(37, 99, 235, 1)',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: chartOptions
+                    });
+                }
+
+                // Force Chart
+                const forceCtx = document.getElementById('forceChart');
+                if (forceCtx) {
+                    AppState.charts.force = new Chart(forceCtx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [
+                                {
+                                    label: 'Basic Force (MN)',
+                                    data: [],
+                                    borderColor: 'rgba(239, 68, 68, 0.8)',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.3
+                                },
+                                {
+                                    label: 'Net Force (MN)',
+                                    data: [],
+                                    borderColor: 'rgba(16, 185, 129, 0.8)',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.3
+                                }
+                            ]
+                        },
+                        options: chartOptions
+                    });
+                }
+
+                // Thickness Chart
+                const thicknessCtx = document.getElementById('thicknessChart');
+                if (thicknessCtx) {
+                    AppState.charts.thickness = new Chart(thicknessCtx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Thickness (mm)',
+                                data: [],
+                                borderColor: 'rgba(124, 58, 237, 0.8)',
+                                backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                                borderWidth: 3,
+                                tension: 0.3,
+                                fill: true
+                            }]
+                        },
+                        options: chartOptions
+                    });
+                }
+
+                // Speed Chart
+                const speedCtx = document.getElementById('speedChart');
+                if (speedCtx) {
+                    AppState.charts.speed = new Chart(speedCtx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [
+                                {
+                                    label: 'Entry Speed (m/min)',
+                                    data: [],
+                                    borderColor: 'rgba(59, 130, 246, 0.8)',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.3
+                                },
+                                {
+                                    label: 'Exit Speed (m/min)',
+                                    data: [],
+                                    borderColor: 'rgba(16, 185, 129, 0.8)',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.3
+                                }
+                            ]
+                        },
+                        options: chartOptions
+                    });
+                }
+
+                // Tension Chart
+                const tensionCtx = document.getElementById('tensionChart');
+                if (tensionCtx) {
+                    AppState.charts.tension = new Chart(tensionCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Interstand Tension (MPa)',
+                                data: [],
+                                backgroundColor: 'rgba(249, 115, 22, 0.7)',
+                                borderColor: 'rgba(249, 115, 22, 1)',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            ...chartOptions,
+                            plugins: {
+                                ...chartOptions.plugins,
+                                annotation: {
+                                    annotations: {
+                                        line1: {
+                                            type: 'line',
+                                            yMin: 60,
+                                            yMax: 60,
+                                            borderColor: 'rgb(255, 99, 132)',
+                                            borderWidth: 2,
+                                            borderDash: [5, 5],
+                                            label: {
+                                                content: 'Looperless Limit (60 MPa)',
+                                                enabled: true,
+                                                position: 'end'
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Reduction Chart
+                const reductionCtx = document.getElementById('reductionChart');
+                if (reductionCtx) {
+                    AppState.charts.reduction = new Chart(reductionCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Reduction (%)',
+                                data: [],
+                                backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                                borderColor: 'rgba(139, 92, 246, 1)',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: chartOptions
+                    });
+                }
+
+                // Comparison Chart
+                const comparisonCtx = document.getElementById('comparisonChart');
+                if (comparisonCtx) {
+                    AppState.charts.comparison = new Chart(comparisonCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Total Reduction', 'Max Tension', 'Total Power', 'Speed Ratio'],
+                            datasets: []
+                        },
+                        options: {
+                            ...chartOptions,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                }
+                            }
+                        }
+                    });
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+                return false;
+            }
+        }
+
+        // ============================================
+        // DISPLAY UPDATE FUNCTIONS
+        // ============================================
+        
+        function updateDisplay() {
+            try {
+                if (AppState.schedule.length === 0) return;
+
+                const schedule = AppState.schedule;
+                const tensions = AppState.interstendTensions;
+
+                // Update summary metrics
+                document.getElementById('entryThickValue').textContent = schedule[0].entryThickness.toFixed(3);
+                document.getElementById('targetThickValue').textContent = document.getElementById('exitThickness').value;
+                document.getElementById('achievedThickValue').textContent = schedule[schedule.length - 1].exitThickness.toFixed(3);
+                
+                const totalReduction = ((schedule[0].entryThickness - schedule[schedule.length - 1].exitThickness) / schedule[0].entryThickness) * 100;
+                document.getElementById('totalReductionValue').textContent = totalReduction.toFixed(1);
+                
+                document.getElementById('finalSpeedValue').textContent = schedule[schedule.length - 1].exitSpeed.toFixed(0);
+                
+                const speedRatio = schedule[schedule.length - 1].exitSpeed / schedule[0].entrySpeed;
+                document.getElementById('speedRatioValue').textContent = speedRatio.toFixed(2);
+
+                // Speed metrics
+                document.getElementById('entrySpeedValue').textContent = schedule[0].entrySpeed.toFixed(0);
+                document.getElementById('exitSpeedValue').textContent = schedule[schedule.length - 1].exitSpeed.toFixed(0);
+                document.getElementById('massFlowValue').textContent = schedule[0].massFlow.toFixed(2);
+                
+                const maxFlowError = Math.max(...schedule.map(s => Math.abs(s.flowError)));
+                document.getElementById('flowErrorValue').textContent = maxFlowError.toFixed(2);
+
+                // Tension metrics
+                if (tensions.length > 0) {
+                    const maxTension = Math.max(...tensions.map(t => t.tension));
+                    document.getElementById('maxInterstendTensionValue').textContent = maxTension.toFixed(1);
+                    
+                    const avgForceReduction = schedule.reduce((sum, s) => sum + s.tensionReduction, 0) / schedule.length;
+                    document.getElementById('avgForceReductionValue').textContent = avgForceReduction.toFixed(1);
+                    
+                    const totalTensionLoad = tensions.reduce((sum, t) => sum + t.tensionLoad, 0);
+                    document.getElementById('totalTensionLoadValue').textContent = totalTensionLoad.toFixed(3);
+                    
+                    const totalBasicPower = schedule.reduce((sum, s) => sum + (s.basicRollForce * s.contactLength / 2 * s.rollSpeed * 2 * Math.PI / 60000), 0);
+                    const totalNetPower = schedule.reduce((sum, s) => sum + s.power, 0);
+                    const powerSaving = ((totalBasicPower - totalNetPower) / totalBasicPower) * 100;
+                    document.getElementById('powerSavingValue').textContent = powerSaving.toFixed(1);
+                }
+
+                // Update charts
+                updateCharts();
+                
+                // Update tables
+                updateScheduleTable();
+                updateSpeedTable();
+                updateTensionTable();
+
+            } catch (error) {
+                console.error('Error updating display:', error);
+                showStatus('Error updating display: ' + error.message, 'error');
+            }
+        }
+
+        function updateCharts() {
+            const schedule = AppState.schedule;
+            const tensions = AppState.interstendTensions;
+
+            if (schedule.length === 0) return;
+
+            // Update Power Chart
+            if (AppState.charts.power) {
+                AppState.charts.power.data.labels = schedule.map(s => `Stand ${s.stand}`);
+                AppState.charts.power.data.datasets[0].data = schedule.map(s => s.power);
+                AppState.charts.power.update();
+            }
+
+            // Update Force Chart
+            if (AppState.charts.force) {
+                AppState.charts.force.data.labels = schedule.map(s => `Stand ${s.stand}`);
+                AppState.charts.force.data.datasets[0].data = schedule.map(s => s.basicRollForce);
+                AppState.charts.force.data.datasets[1].data = schedule.map(s => s.netRollForce);
+                AppState.charts.force.update();
+            }
+
+            // Update Thickness Chart
+            if (AppState.charts.thickness) {
+                const thicknessLabels = ['Entry'];
+                const thicknessData = [schedule[0].entryThickness];
+                schedule.forEach(s => {
+                    thicknessLabels.push(`Stand ${s.stand}`);
+                    thicknessData.push(s.exitThickness);
+                });
+                
+                AppState.charts.thickness.data.labels = thicknessLabels;
+                AppState.charts.thickness.data.datasets[0].data = thicknessData;
+                AppState.charts.thickness.update();
+            }
+
+            // Update Speed Chart
+            if (AppState.charts.speed) {
+                AppState.charts.speed.data.labels = schedule.map(s => `Stand ${s.stand}`);
+                AppState.charts.speed.data.datasets[0].data = schedule.map(s => s.entrySpeed);
+                AppState.charts.speed.data.datasets[1].data = schedule.map(s => s.exitSpeed);
+                AppState.charts.speed.update();
+            }
+
+            // Update Tension Chart
+            if (AppState.charts.tension && tensions.length > 0) {
+                AppState.charts.tension.data.labels = tensions.map(t => `Zone ${t.zone}`);
+                AppState.charts.tension.data.datasets[0].data = tensions.map(t => t.tension);
+                AppState.charts.tension.update();
+            }
+
+            // Update Reduction Chart
+            if (AppState.charts.reduction) {
+                AppState.charts.reduction.data.labels = schedule.map(s => `Stand ${s.stand}`);
+                AppState.charts.reduction.data.datasets[0].data = schedule.map(s => s.reduction);
+                AppState.charts.reduction.update();
+            }
+        }
+
+        function updateSpeedTable() {
+            const tableBody = document.querySelector('#speedTable tbody');
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                
+                AppState.schedule.forEach(stand => {
+                    const row = tableBody.insertRow();
+                    row.innerHTML = `
+                        <td><strong>Stand ${stand.stand}</strong></td>
+                        <td>${stand.entrySpeed.toFixed(0)}</td>
+                        <td>${stand.exitSpeed.toFixed(0)}</td>
+                        <td>${stand.forwardSlip.toFixed(1)}</td>
+                        <td>${stand.rollSpeed.toFixed(0)}</td>
+                        <td>${stand.massFlow.toFixed(1)}</td>
+                        <td>${Math.abs(stand.flowError).toFixed(2)}</td>
+                    `;
+                });
+            }
+        }
+
+        function updateTensionTable() {
+            const tableBody = document.querySelector('#tensionTable tbody');
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                
+                AppState.interstendTensions.forEach(tension => {
+                    const forceReduction = AppState.schedule[tension.upstreamStand - 1]?.tensionReduction || 0;
+                    
+                    // Color code based on safety factors
+                    const yieldSFColor = tension.safetyFactor < 2.5 ? 'color: var(--danger); font-weight: bold;' : 
+                                       tension.safetyFactor < 3.0 ? 'color: var(--warning);' : '';
+                    const breakingSFColor = tension.breakingSafetyFactor < 3.0 ? 'color: var(--danger); font-weight: bold;' : 
+                                           tension.breakingSafetyFactor < 3.5 ? 'color: var(--warning);' : '';
+                    
+                    const row = tableBody.insertRow();
+                    row.innerHTML = `
+                        <td><strong>Zone ${tension.zone} (${tension.upstreamStand}→${tension.downstreamStand})</strong></td>
+                        <td>${tension.tension.toFixed(1)}</td>
+                        <td>${tension.tensionLoad.toFixed(3)}</td>
+                        <td>${tension.frontTension.toFixed(1)}</td>
+                        <td>${tension.backTension.toFixed(1)}</td>
+                        <td>${forceReduction.toFixed(1)}</td>
+                        <td style="${yieldSFColor}">${tension.safetyFactor.toFixed(2)}</td>
+                        <td style="${breakingSFColor}">${tension.breakingSafetyFactor.toFixed(2)}</td>
+                    `;
+                });
+            }
+        }
+
+        function updateScheduleTable() {
+            const tableBody = document.querySelector('#scheduleTable tbody');
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                
+                AppState.schedule.forEach(stand => {
+                    const row = tableBody.insertRow();
+                    row.innerHTML = `
+                        <td><strong>Stand ${stand.stand}</strong></td>
+                        <td>${stand.entryThickness.toFixed(3)}</td>
+                        <td>${stand.exitThickness.toFixed(3)}</td>
+                        <td>${stand.reduction.toFixed(1)}</td>
+                        <td>${stand.rollSpeed.toFixed(0)}</td>
+                        <td>${stand.exitSpeed.toFixed(0)}</td>
+                        <td>${stand.forwardSlip.toFixed(1)}</td>
+                        <td>${stand.basicRollForce.toFixed(2)}</td>
+                        <td>${stand.netRollForce.toFixed(2)}</td>
+                        <td>${stand.power.toFixed(2)}</td>
+                    `;
+                });
+            }
+        }
+
+        // ============================================
+        // EXPORT & SAVE FUNCTIONS
+        // ============================================
+        
+        function exportToCSV() {
+            if (AppState.schedule.length === 0) {
+                showStatus('No schedule data to export', 'warning');
+                return;
+            }
+
+            let csv = 'Electrical Steel Cold Rolling Schedule - Looperless Tandem Mill\n\n';
+            csv += 'Stand,Entry Thickness (mm),Exit Thickness (mm),Reduction (%),Roll Speed (rpm),Strip Speed (m/min),Forward Slip (%),Basic Force (MN),Net Force (MN),Power (MW)\n';
+            
+            AppState.schedule.forEach(stand => {
+                csv += `${stand.stand},${stand.entryThickness.toFixed(3)},${stand.exitThickness.toFixed(3)},${stand.reduction.toFixed(1)},${stand.rollSpeed.toFixed(0)},${stand.exitSpeed.toFixed(0)},${stand.forwardSlip.toFixed(1)},${stand.basicRollForce.toFixed(2)},${stand.netRollForce.toFixed(2)},${stand.power.toFixed(2)}\n`;
+            });
+
+            csv += '\nInterstand Tensions (Looperless Configuration)\n';
+            csv += 'Zone,Tension (MPa),Unit Tension (kN/mm),Front Tension (MPa),Back Tension (MPa),Force Reduction (%),Yield SF,Breaking SF\n';
+            
+            AppState.interstendTensions.forEach(tension => {
+                const forceReduction = AppState.schedule[tension.upstreamStand - 1]?.tensionReduction || 0;
+                csv += `${tension.zone},${tension.tension.toFixed(1)},${tension.tensionLoad.toFixed(3)},${tension.frontTension.toFixed(1)},${tension.backTension.toFixed(1)},${forceReduction.toFixed(1)},${tension.safetyFactor.toFixed(2)},${tension.breakingSafetyFactor.toFixed(2)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'looperless_rolling_schedule.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showStatus('Schedule exported to CSV successfully', 'success');
+        }
+
+        function saveConfiguration() {
+            const config = {
+                timestamp: new Date().toISOString(),
+                inputs: {
+                    numStands: document.getElementById('numStands').value,
+                    entryThickness: document.getElementById('entryThickness').value,
+                    exitThickness: document.getElementById('exitThickness').value,
+                    entrySpeed: document.getElementById('entrySpeed').value,
+                    stripWidth: document.getElementById('stripWidth').value,
+                    rollRadius: document.getElementById('rollRadius').value,
+                    patternType: document.getElementById('patternType').value,
+                    steelGrade: document.getElementById('steelGrade').value,
+                    tensionStrategy: document.getElementById('tensionStrategy').value,
+                    maxTensionPct: document.getElementById('maxTensionPct').value,
+                    temperature: document.getElementById('temperature').value,
+                    maxRollForce: document.getElementById('maxRollForce').value,
+                    maxMotorPower: document.getElementById('maxMotorPower').value,
+                    maxRollSpeed: document.getElementById('maxRollSpeed').value,
+                    maxStripSpeed: document.getElementById('maxStripSpeed').value,
+                    maxTension: document.getElementById('maxTension').value
+                },
+                schedule: AppState.schedule,
+                tensions: AppState.interstendTensions
+            };
+
+            const json = JSON.stringify(config, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `looperless_config_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showStatus('Configuration saved successfully', 'success');
+        }
+
+        function loadConfiguration() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    try {
+                        const config = JSON.parse(event.target.result);
+                        
+                        // Restore input values
+                        Object.keys(config.inputs).forEach(key => {
+                            const element = document.getElementById(key);
+                            if (element) {
+                                element.value = config.inputs[key];
+                            }
+                        });
+                        
+                        // Restore calculated results if available
+                        if (config.schedule && config.schedule.length > 0) {
+                            AppState.schedule = config.schedule;
+                            AppState.interstendTensions = config.tensions;
+                            updateDisplay();
+                        }
+                        
+                        showStatus('Configuration loaded successfully', 'success');
+                    } catch (error) {
+                        showStatus('Error loading configuration: ' + error.message, 'error');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // ============================================
+        // COMPARISON MODE FUNCTIONS
+        // ============================================
+        
+        function saveToComparison() {
+            if (AppState.schedule.length === 0) {
+                showStatus('No schedule to save for comparison', 'warning');
+                return;
+            }
+
+            const compData = {
+                name: `Config ${AppState.comparisonData.length + 1}`,
+                timestamp: new Date().toLocaleString(),
+                schedule: [...AppState.schedule],
+                tensions: [...AppState.interstendTensions],
+                metrics: {
+                    totalReduction: ((AppState.schedule[0].entryThickness - AppState.schedule[AppState.schedule.length - 1].exitThickness) / AppState.schedule[0].entryThickness) * 100,
+                    maxTension: Math.max(...AppState.interstendTensions.map(t => t.tension)),
+                    totalPower: AppState.schedule.reduce((sum, s) => sum + s.power, 0),
+                    speedRatio: AppState.schedule[AppState.schedule.length - 1].exitSpeed / AppState.schedule[0].entrySpeed
+                }
+            };
+
+            AppState.comparisonData.push(compData);
+            updateComparisonDisplay();
+            showStatus('Configuration saved to comparison', 'success');
+        }
+
+        function clearComparison() {
+            AppState.comparisonData = [];
+            updateComparisonDisplay();
+            showStatus('Comparison data cleared', 'success');
+        }
+
+        function updateComparisonDisplay() {
+            const container = document.getElementById('comparisonResults');
+            
+            if (AppState.comparisonData.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--gray); padding: 20px;">No comparison data saved yet</p>';
+                return;
+            }
+
+            container.innerHTML = AppState.comparisonData.map((config, idx) => `
+                <div class="comparison-card">
+                    <h4>${config.name}</h4>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-bottom: 15px;">${config.timestamp}</p>
+                    <div class="comparison-metric">
+                        <span class="label">Total Reduction:</span>
+                        <span class="value">${config.metrics.totalReduction.toFixed(1)}%</span>
+                    </div>
+                    <div class="comparison-metric">
+                        <span class="label">Max Tension:</span>
+                        <span class="value">${config.metrics.maxTension.toFixed(1)} MPa</span>
+                    </div>
+                    <div class="comparison-metric">
+                        <span class="label">Total Power:</span>
+                        <span class="value">${config.metrics.totalPower.toFixed(2)} MW</span>
+                    </div>
+                    <div class="comparison-metric">
+                        <span class="label">Speed Ratio:</span>
+                        <span class="value">${config.metrics.speedRatio.toFixed(2)}:1</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update comparison chart
+            if (AppState.charts.comparison) {
+                const colors = ['rgba(37, 99, 235, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(139, 92, 246, 0.7)'];
+                
+                AppState.charts.comparison.data.datasets = AppState.comparisonData.map((config, idx) => ({
+                    label: config.name,
+                    data: [
+                        config.metrics.totalReduction,
+                        config.metrics.maxTension,
+                        config.metrics.totalPower,
+                        config.metrics.speedRatio
+                    ],
+                    backgroundColor: colors[idx % colors.length]
+                }));
+                
+                AppState.charts.comparison.update();
+            }
+        }
+
+        // ============================================
+        // TAB SWITCHING
+        // ============================================
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const selectedTab = document.getElementById(tabName + 'Tab');
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+        }
+
+        // ============================================
+        // RESET FUNCTION
+        // ============================================
+        
+        function resetAll() {
+            try {
+                document.getElementById('numStands').value = 6;
+                document.getElementById('entryThickness').value = 2.0;
+                document.getElementById('exitThickness').value = 0.35;
+                document.getElementById('entrySpeed').value = 180;
+                document.getElementById('stripWidth').value = 1200;
+                document.getElementById('rollRadius').value = 300;
+                document.getElementById('patternType').value = 'linear';
+                document.getElementById('steelGrade').value = 'ngo_035_300';
+                document.getElementById('tensionStrategy').value = 'regressive';
+                document.getElementById('maxTensionPct').value = 12;
+                document.getElementById('temperature').value = 20;
+                
+                // Reset equipment limits
+                document.getElementById('maxRollForce').value = 25.0;
+                document.getElementById('maxMotorPower').value = 4.0;
+                document.getElementById('maxRollSpeed').value = 500;
+                document.getElementById('maxStripSpeed').value = 800;
+                document.getElementById('maxTension').value = 60;
+                
+                AppState.schedule = [];
+                AppState.interstendTensions = [];
+                AppState.validationErrors = [];
+                
+                document.querySelectorAll('.input-error').forEach(el => el.classList.remove('show'));
+                document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error', 'warning'));
+                document.getElementById('validationSummary').classList.remove('show');
+                
+                ['entryThickValue', 'targetThickValue', 'achievedThickValue', 'totalReductionValue',
+                 'finalSpeedValue', 'speedRatioValue', 'entrySpeedValue', 'exitSpeedValue', 
+                 'massFlowValue', 'flowErrorValue', 'maxInterstendTensionValue', 
+                 'avgForceReductionValue', 'totalTensionLoadValue', 'powerSavingValue'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) element.textContent = '-';
+                });
+                
+                Object.values(AppState.charts).forEach(chart => {
+                    if (chart) {
+                        chart.data.labels = [];
+                        chart.data.datasets.forEach(dataset => dataset.data = []);
+                        chart.update();
+                    }
+                });
+                
+                ['#speedTable tbody', '#tensionTable tbody', '#scheduleTable tbody'].forEach(selector => {
+                    const tbody = document.querySelector(selector);
+                    if (tbody) tbody.innerHTML = '';
+                });
+
+                document.getElementById('constraintStatus').innerHTML = `
+                    <p style="color: var(--gray); text-align: center; padding: 20px;">
+                        Run calculation to see constraint validation
+                    </p>
+                `;
+                
+                showStatus('Form reset to looperless mill defaults', 'success');
+            } catch (error) {
+                console.error('Error resetting form:', error);
+                showStatus('Error resetting form: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // DOCUMENTATION MODAL
+        // ============================================
+        
+        function openDocsModal() {
+            document.getElementById('docsModal').classList.add('show');
+        }
+
+        function closeDocsModal() {
+            document.getElementById('docsModal').classList.remove('show');
+        }
+
+        // ============================================
+        // EVENT LISTENERS SETUP
+        // ============================================
+        
+        function setupEventListeners() {
+            try {
+                document.getElementById('calculateBtn')?.addEventListener('click', calculateSchedule);
+                document.getElementById('resetBtn')?.addEventListener('click', resetAll);
+                document.getElementById('exportBtn')?.addEventListener('click', exportToCSV);
+                document.getElementById('saveConfigBtn')?.addEventListener('click', saveConfiguration);
+                document.getElementById('loadConfigBtn')?.addEventListener('click', loadConfiguration);
+                document.getElementById('compareBtn')?.addEventListener('click', () => switchTab('compare'));
+                document.getElementById('docsBtn')?.addEventListener('click', openDocsModal);
+                document.getElementById('saveComparisonBtn')?.addEventListener('click', saveToComparison);
+                document.getElementById('clearComparisonBtn')?.addEventListener('click', clearComparison);
+
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        switchTab(this.getAttribute('data-tab'));
+                    });
+                });
+
+                // Close modal on outside click
+                document.getElementById('docsModal')?.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeDocsModal();
+                    }
+                });
+            } catch (error) {
+                console.error('Error setting up event listeners:', error);
+            }
+        }
+
+        // ============================================
+        // INITIALIZE APPLICATION
+        // ============================================
+        
+        function initApp() {
+            try {
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initApp);
+                    return;
+                }
+                
+                setupEventListeners();
+                
+                setTimeout(() => {
+                    if (initCharts()) {
+                        showStatus('Looperless tandem mill calculator ready - All systems operational ✓', 'success');
+                    } else {
+                        showStatus('Calculator ready (charts disabled)', 'success');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error initializing application:', error);
+                showStatus('Error initializing application: ' + error.message, 'error');
+            }
+        }
+
+        // START
+        initApp();
+    </script>
+</body>
+</html>
